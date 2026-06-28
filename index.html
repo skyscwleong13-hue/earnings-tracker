@@ -52,7 +52,7 @@ input:focus, select:focus, button:focus { outline:none; }
 .nav-item svg { width:22px; height:22px; }
 
 #onboarding {
-  display:none; position:fixed; inset:0; background:var(--bg);
+  display:none; position:fixed; inset:0; z-index:200; background:var(--bg);
   overflow-y:auto;
 }
 #onboarding.active { display:flex; flex-direction:column; }
@@ -566,7 +566,10 @@ function showAddCompanyModal(cid){
     document.getElementById('modal-company-title').textContent='Edit Company';
   }else{document.getElementById('modal-company-title').textContent='Add Company';}
   toggleLangSection();renderModalLangs();
-  document.getElementById('modal-company').classList.add('active');
+  var modal=document.getElementById('modal-company');
+  var onb=document.getElementById('onboarding');
+  if(onb.classList.contains('active')){onb.appendChild(modal);}else{document.body.appendChild(modal);}
+  modal.classList.add('active');
 }
 function closeModal(){document.getElementById('modal-company').classList.remove('active')}
 function toggleLangSection(){document.getElementById('mc-lang-section').style.display=document.getElementById('mc-type').value==='per_minute'?'block':'none'}
