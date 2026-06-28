@@ -2,7 +2,7 @@
   "name": "Daily Earnings Tracker",
   "short_name": "Earnings",
   "description": "Track interpreting earnings across Jeenie, Lionbridge, CQ Fluency & Propio",
-  "start_url": "./earnings-tracker.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
