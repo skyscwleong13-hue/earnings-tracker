@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Daily Earnings Tracker</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    min-height: 100vh;
+  }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+  h1 { text-align: center; font-size: 1.8rem; margin-bottom: 8px; color: #38bdf8; }
+  .subtitle { text-align: center; color: #94a3b8; margin-bottom: 24px; font-size: 0.9rem; }
+
+  .date-bar {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    margin-bottom: 24px; flex-wrap: wrap;
+  }
+  .date-bar input[type="date"] {
+    background: #1e293b; border: 1px solid #334155; color: #e2e8f0;
+    padding: 10px 16px; border-radius: 8px; font-size: 1rem;
+  }
+  .date-bar label { color: #94a3b8; font-size: 0.9rem; }
+  .rate-input {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .rate-input input {
+    background: #1e293b; border: 1px solid #334155; color: #e2e8f0;
+    padding: 10px 12px; border-radius: 8px; font-size: 1rem; width: 100px; text-align: center;
+  }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: #1e293b; border-radius: 12px; padding: 20px;
+    border: 1px solid #334155; transition: border-color 0.2s;
+  }
+  .card:hover { border-color: #475569; }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .card-title { font-size: 1.1rem; font-weight: 600; }
+  .card-badge {
+    font-size: 0.7rem; padding: 3px 8px; border-radius: 20px;
+    text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;
+  }
+  .badge-minutes { background: #164e63; color: #22d3ee; }
+  .badge-dollar { background: #14532d; color: #4ade80; }
+
+  .lang-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  }
+  .lang-label {
+    width: 90px; font-size: 0.85rem; color: #94a3b8;
+  }
+  .lang-rate { font-size: 0.75rem; color: #64748b; }
+  .lang-row input {
+    flex: 1; background: #0f172a; border: 1px solid #334155; color: #e2e8f0;
+    padding: 10px 12px; border-radius: 8px; font-size: 1rem;
+  }
+  .lang-row input:focus { outline: none; border-color: #38bdf8; }
+  .lang-row .result {
+    font-size: 0.85rem; color: #38bdf8; min-width: 80px; text-align: right;
+  }
+
+  .dollar-input-row {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .dollar-input-row input {
+    flex: 1; background: #0f172a; border: 1px solid #334155; color: #e2e8f0;
+    padding: 12px 14px; border-radius: 8px; font-size: 1.1rem;
+  }
+  .dollar-input-row input:focus { outline: none; border-color: #4ade80; }
+  .dollar-prefix { color: #94a3b8; font-size: 1.1rem; }
+
+  .card-total {
+    margin-top: 16px; padding-top: 12px; border-top: 1px solid #334155;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .card-total-label { color: #94a3b8; font-size: 0.85rem; }
+  .card-total-value { font-size: 1.1rem; font-weight: 700; color: #38bdf8; }
+
+  .summary {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid #334155; border-radius: 12px; padding: 24px;
+    margin-bottom: 24px;
+  }
+  .summary h2 { font-size: 1.2rem; margin-bottom: 16px; color: #f8fafc; }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+  .summary-item {
+    background: #0f172a; border-radius: 8px; padding: 16px; text-align: center;
+  }
+  .summary-label { font-size: 0.8rem; color: #94a3b8; margin-bottom: 6px; }
+  .summary-value { font-size: 1.4rem; font-weight: 700; }
+  .usd-color { color: #38bdf8; }
+  .myr-color { color: #a78bfa; }
+
+  .actions {
+    display: flex; gap: 12px; justify-content: center; margin-bottom: 32px; flex-wrap: wrap;
+  }
+  .btn {
+    padding: 12px 28px; border: none; border-radius: 8px; font-size: 0.95rem;
+    font-weight: 600; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary { background: #2563eb; color: white; }
+  .btn-primary:hover { background: #3b82f6; }
+  .btn-danger { background: #991b1b; color: #fecaca; }
+  .btn-danger:hover { background: #b91c1c; }
+  .btn-secondary { background: #334155; color: #e2e8f0; }
+  .btn-secondary:hover { background: #475569; }
+
+  .history { margin-top: 32px; }
+  .history h2 { font-size: 1.2rem; margin-bottom: 16px; color: #f8fafc; }
+  .month-selector {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+  }
+  .month-selector select {
+    background: #1e293b; border: 1px solid #334155; color: #e2e8f0;
+    padding: 8px 12px; border-radius: 8px; font-size: 0.95rem;
+  }
+
+  table {
+    width: 100%; border-collapse: collapse; font-size: 0.85rem;
+  }
+  th {
+    text-align: left; padding: 10px 12px; background: #1e293b;
+    color: #94a3b8; font-weight: 600; border-bottom: 1px solid #334155;
+    position: sticky; top: 0;
+  }
+  td {
+    padding: 10px 12px; border-bottom: 1px solid #1e293b;
+  }
+  tr:hover td { background: #1e293b44; }
+  .table-wrap {
+    max-height: 400px; overflow-y: auto; border-radius: 8px;
+    border: 1px solid #334155;
+  }
+  .monthly-total-row td {
+    background: #1e293b; font-weight: 700; color: #38bdf8;
+    border-top: 2px solid #334155;
+  }
+  .delete-btn {
+    background: none; border: none; color: #ef4444; cursor: pointer;
+    font-size: 1rem; padding: 2px 6px; border-radius: 4px;
+  }
+  .delete-btn:hover { background: #991b1b33; }
+
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; background: #16a34a;
+    color: white; padding: 12px 20px; border-radius: 8px; font-weight: 600;
+    transform: translateY(100px); opacity: 0; transition: all 0.3s;
+    z-index: 100;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  input[type="number"]::-webkit-inner-spin-button { opacity: 1; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>💰 Daily Earnings Tracker</h1>
+  <p class="subtitle">Track your interpreting earnings across all companies</p>
+
+  <div class="date-bar">
+    <input type="date" id="entryDate">
+    <div class="rate-input">
+      <label>USD → MYR:</label>
+      <input type="number" id="myrRate" step="0.01" placeholder="4.45">
+      <button class="btn btn-secondary" id="fetchRateBtn" style="padding:8px 14px;font-size:0.85rem;">Fetch Rate</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Jeenie -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Jeenie</span>
+        <span class="card-badge badge-minutes">Per Minute</span>
+      </div>
+      <div class="lang-row">
+        <span class="lang-label">Mandarin <span class="lang-rate">$0.50/min</span></span>
+        <input type="number" id="jeenie-mandarin" placeholder="0" min="0" step="1" oninput="calculate()">
+        <span class="result" id="jeenie-mandarin-usd">$0.00</span>
+      </div>
+      <div class="lang-row">
+        <span class="lang-label">Cantonese <span class="lang-rate">$0.50/min</span></span>
+        <input type="number" id="jeenie-cantonese" placeholder="0" min="0" step="1" oninput="calculate()">
+        <span class="result" id="jeenie-cantonese-usd">$0.00</span>
+      </div>
+      <div class="card-total">
+        <span class="card-total-label">Jeenie Total</span>
+        <span class="card-total-value" id="jeenie-total">$0.00</span>
+      </div>
+    </div>
+
+    <!-- Lionbridge -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Lionbridge</span>
+        <span class="card-badge badge-minutes">Per Minute</span>
+      </div>
+      <div class="lang-row">
+        <span class="lang-label">Mandarin <span class="lang-rate">$0.55/min</span></span>
+        <input type="number" id="lb-mandarin" placeholder="0" min="0" step="1" oninput="calculate()">
+        <span class="result" id="lb-mandarin-usd">$0.00</span>
+      </div>
+      <div class="lang-row">
+        <span class="lang-label">Cantonese <span class="lang-rate">$0.60/min</span></span>
+        <input type="number" id="lb-cantonese" placeholder="0" min="0" step="1" oninput="calculate()">
+        <span class="result" id="lb-cantonese-usd">$0.00</span>
+      </div>
+      <div class="card-total">
+        <span class="card-total-label">Lionbridge Total</span>
+        <span class="card-total-value" id="lb-total">$0.00</span>
+      </div>
+    </div>
+
+    <!-- CQ Fluency -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">CQ Fluency</span>
+        <span class="card-badge badge-dollar">USD Amount</span>
+      </div>
+      <div class="dollar-input-row">
+        <span class="dollar-prefix">$</span>
+        <input type="number" id="cq-amount" placeholder="0.00" min="0" step="0.01" oninput="calculate()">
+      </div>
+      <div class="card-total">
+        <span class="card-total-label">CQ Fluency Total</span>
+        <span class="card-total-value" id="cq-total">$0.00</span>
+      </div>
+    </div>
+
+    <!-- Propio -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Propio</span>
+        <span class="card-badge badge-dollar">USD Amount</span>
+      </div>
+      <div class="dollar-input-row">
+        <span class="dollar-prefix">$</span>
+        <input type="number" id="propio-amount" placeholder="0.00" min="0" step="0.01" oninput="calculate()">
+      </div>
+      <div class="card-total">
+        <span class="card-total-label">Propio Total</span>
+        <span class="card-total-value" id="propio-total">$0.00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Daily Summary -->
+  <div class="summary">
+    <h2>📊 Daily Summary</h2>
+    <div class="summary-grid">
+      <div class="summary-item">
+        <div class="summary-label">Total USD</div>
+        <div class="summary-value usd-color" id="daily-usd">$0.00</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Total MYR</div>
+        <div class="summary-value myr-color" id="daily-myr">RM 0.00</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Total Minutes</div>
+        <div class="summary-value" style="color:#fbbf24;" id="daily-mins">0 min</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Exchange Rate</div>
+        <div class="summary-value" style="color:#94a3b8;" id="daily-rate">-</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" onclick="saveEntry()">Save Entry</button>
+    <button class="btn btn-danger" onclick="clearInputs()">Clear</button>
+  </div>
+
+  <!-- Monthly History -->
+  <div class="history">
+    <h2>📅 Monthly History</h2>
+    <div class="month-selector">
+      <select id="monthSelect" onchange="renderHistory()"></select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Jeenie</th>
+            <th>Lionbridge</th>
+            <th>CQ Fluency</th>
+            <th>Propio</th>
+            <th>Total USD</th>
+            <th>Total MYR</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Monthly Summary -->
+    <div class="summary" style="margin-top: 16px;" id="monthlySummary">
+      <h2>📈 Monthly Total</h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-label">Month Total USD</div>
+          <div class="summary-value usd-color" id="month-usd">$0.00</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Month Total MYR</div>
+          <div class="summary-value myr-color" id="month-myr">RM 0.00</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Days Worked</div>
+          <div class="summary-value" style="color:#fbbf24;" id="month-days">0</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Avg Daily USD</div>
+          <div class="summary-value usd-color" id="month-avg">$0.00</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Entry saved!</div>
+
+<script>
+const RATES = {
+  jeenie: { mandarin: 0.50, cantonese: 0.50 },
+  lionbridge: { mandarin: 0.55, cantonese: 0.60 }
+};
+
+const STORAGE_KEY = 'earnings_tracker_data';
+
+function getEntries() {
+  return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+}
+
+function saveEntries(entries) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+}
+
+function fmt(n) {
+  return '$' + n.toFixed(2);
+}
+
+function fmtMyr(n) {
+  return 'RM ' + n.toFixed(2);
+}
+
+function val(id) {
+  return parseFloat(document.getElementById(id).value) || 0;
+}
+
+function calculate() {
+  const jm = val('jeenie-mandarin');
+  const jc = val('jeenie-cantonese');
+  const lm = val('lb-mandarin');
+  const lc = val('lb-cantonese');
+  const cq = val('cq-amount');
+  const pr = val('propio-amount');
+  const rate = val('myrRate');
+
+  const jmUsd = jm * RATES.jeenie.mandarin;
+  const jcUsd = jc * RATES.jeenie.cantonese;
+  const lmUsd = lm * RATES.lionbridge.mandarin;
+  const lcUsd = lc * RATES.lionbridge.cantonese;
+
+  document.getElementById('jeenie-mandarin-usd').textContent = fmt(jmUsd);
+  document.getElementById('jeenie-cantonese-usd').textContent = fmt(jcUsd);
+  document.getElementById('lb-mandarin-usd').textContent = fmt(lmUsd);
+  document.getElementById('lb-cantonese-usd').textContent = fmt(lcUsd);
+
+  const jeenieTotal = jmUsd + jcUsd;
+  const lbTotal = lmUsd + lcUsd;
+
+  document.getElementById('jeenie-total').textContent = fmt(jeenieTotal);
+  document.getElementById('lb-total').textContent = fmt(lbTotal);
+  document.getElementById('cq-total').textContent = fmt(cq);
+  document.getElementById('propio-total').textContent = fmt(pr);
+
+  const totalUsd = jeenieTotal + lbTotal + cq + pr;
+  const totalMyr = totalUsd * rate;
+  const totalMins = jm + jc + lm + lc;
+
+  document.getElementById('daily-usd').textContent = fmt(totalUsd);
+  document.getElementById('daily-myr').textContent = rate > 0 ? fmtMyr(totalMyr) : 'Set rate';
+  document.getElementById('daily-mins').textContent = totalMins + ' min';
+  document.getElementById('daily-rate').textContent = rate > 0 ? ('1 USD = ' + rate + ' MYR') : '-';
+}
+
+function saveEntry() {
+  const date = document.getElementById('entryDate').value;
+  const rate = val('myrRate');
+  if (!date) { showToast('Please select a date'); return; }
+  if (rate <= 0) { showToast('Please enter the MYR rate'); return; }
+
+  const entry = {
+    date,
+    rate,
+    jeenie: { mandarin: val('jeenie-mandarin'), cantonese: val('jeenie-cantonese') },
+    lionbridge: { mandarin: val('lb-mandarin'), cantonese: val('lb-cantonese') },
+    cq: val('cq-amount'),
+    propio: val('propio-amount')
+  };
+
+  // Calculate totals
+  entry.jeenieUsd = entry.jeenie.mandarin * RATES.jeenie.mandarin + entry.jeenie.cantonese * RATES.jeenie.cantonese;
+  entry.lbUsd = entry.lionbridge.mandarin * RATES.lionbridge.mandarin + entry.lionbridge.cantonese * RATES.lionbridge.cantonese;
+  entry.totalUsd = entry.jeenieUsd + entry.lbUsd + entry.cq + entry.propio;
+  entry.totalMyr = entry.totalUsd * entry.rate;
+
+  let entries = getEntries();
+  const existIdx = entries.findIndex(e => e.date === date);
+  if (existIdx >= 0) {
+    entries[existIdx] = entry;
+  } else {
+    entries.push(entry);
+  }
+  entries.sort((a, b) => a.date.localeCompare(b.date));
+  saveEntries(entries);
+
+  populateMonths();
+  renderHistory();
+  showToast('Entry saved!');
+}
+
+function deleteEntry(date) {
+  if (!confirm('Delete entry for ' + date + '?')) return;
+  let entries = getEntries();
+  entries = entries.filter(e => e.date !== date);
+  saveEntries(entries);
+  populateMonths();
+  renderHistory();
+  showToast('Entry deleted');
+}
+
+function loadEntry(date) {
+  const entries = getEntries();
+  const entry = entries.find(e => e.date === date);
+  if (!entry) return;
+
+  document.getElementById('entryDate').value = entry.date;
+  document.getElementById('myrRate').value = entry.rate;
+  document.getElementById('jeenie-mandarin').value = entry.jeenie.mandarin || '';
+  document.getElementById('jeenie-cantonese').value = entry.jeenie.cantonese || '';
+  document.getElementById('lb-mandarin').value = entry.lionbridge.mandarin || '';
+  document.getElementById('lb-cantonese').value = entry.lionbridge.cantonese || '';
+  document.getElementById('cq-amount').value = entry.cq || '';
+  document.getElementById('propio-amount').value = entry.propio || '';
+  calculate();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function clearInputs() {
+  ['jeenie-mandarin','jeenie-cantonese','lb-mandarin','lb-cantonese','cq-amount','propio-amount'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  calculate();
+}
+
+function populateMonths() {
+  const entries = getEntries();
+  const months = new Set();
+  entries.forEach(e => {
+    months.add(e.date.substring(0, 7));
+  });
+
+  const now = new Date();
+  const currentMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  months.add(currentMonth);
+
+  const sorted = [...months].sort().reverse();
+  const select = document.getElementById('monthSelect');
+  const prev = select.value;
+  select.innerHTML = '';
+  sorted.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m;
+    const [y, mo] = m.split('-');
+    opt.textContent = new Date(y, parseInt(mo) - 1).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+    select.appendChild(opt);
+  });
+  if (prev && sorted.includes(prev)) {
+    select.value = prev;
+  }
+}
+
+function renderHistory() {
+  const month = document.getElementById('monthSelect').value;
+  const entries = getEntries().filter(e => e.date.startsWith(month));
+  const tbody = document.getElementById('historyBody');
+  tbody.innerHTML = '';
+
+  let monthUsd = 0, monthMyr = 0;
+
+  entries.forEach(e => {
+    monthUsd += e.totalUsd;
+    monthMyr += e.totalMyr;
+
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.onclick = () => loadEntry(e.date);
+
+    const day = new Date(e.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    tr.innerHTML = `
+      <td>${day}</td>
+      <td>${fmt(e.jeenieUsd)}</td>
+      <td>${fmt(e.lbUsd)}</td>
+      <td>${fmt(e.cq)}</td>
+      <td>${fmt(e.propio)}</td>
+      <td style="font-weight:600;color:#38bdf8;">${fmt(e.totalUsd)}</td>
+      <td style="font-weight:600;color:#a78bfa;">${fmtMyr(e.totalMyr)}</td>
+      <td><button class="delete-btn" onclick="event.stopPropagation();deleteEntry('${e.date}')">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Monthly totals row
+  if (entries.length > 0) {
+    const tr = document.createElement('tr');
+    tr.className = 'monthly-total-row';
+    tr.innerHTML = `
+      <td colspan="5" style="text-align:right;">Monthly Total</td>
+      <td>${fmt(monthUsd)}</td>
+      <td style="color:#a78bfa;">${fmtMyr(monthMyr)}</td>
+      <td></td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById('month-usd').textContent = fmt(monthUsd);
+  document.getElementById('month-myr').textContent = fmtMyr(monthMyr);
+  document.getElementById('month-days').textContent = entries.length;
+  document.getElementById('month-avg').textContent = entries.length > 0 ? fmt(monthUsd / entries.length) : '$0.00';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+document.getElementById('myrRate').addEventListener('input', calculate);
+
+document.getElementById('fetchRateBtn').addEventListener('click', async () => {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    const data = await res.json();
+    if (data.rates && data.rates.MYR) {
+      document.getElementById('myrRate').value = data.rates.MYR.toFixed(4);
+      calculate();
+      showToast('Rate fetched: 1 USD = ' + data.rates.MYR.toFixed(4) + ' MYR');
+    }
+  } catch {
+    showToast('Could not fetch rate. Enter manually.');
+  }
+});
+
+// Init
+const today = new Date();
+document.getElementById('entryDate').value = today.getFullYear() + '-' +
+  String(today.getMonth() + 1).padStart(2, '0') + '-' +
+  String(today.getDate()).padStart(2, '0');
+
+populateMonths();
+renderHistory();
+calculate();
+
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
+</script>
+</body>
+</html>
