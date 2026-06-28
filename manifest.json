@@ -1,7 +1,7 @@
 {
-  "name": "Daily Earnings Tracker",
-  "short_name": "Earnings",
-  "description": "Track interpreting earnings across Jeenie, Lionbridge, CQ Fluency & Propio",
+  "name": "FreeLedger - Freelance Earnings Tracker",
+  "short_name": "FreeLedger",
+  "description": "Track freelance earnings by company, language, and rate. Convert currencies and view monthly analytics.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f172a",
