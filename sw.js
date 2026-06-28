@@ -1,4 +1,4 @@
-const CACHE_NAME = 'freeledger-v2';
+const CACHE_NAME = 'freeledger-v3';
 const ASSETS = [
   './index.html',
   './manifest.json',
